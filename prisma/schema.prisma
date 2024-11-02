@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:postgres@localhost:5432/ai_img"
+}
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  email                 String    @unique
+  username              String?
+  created_at            DateTime  @default(now())
+  credits               Int
+  subscription_type     SUBSCRIPTION_STATUS @default(UNPAID)
+  images                Image[]
+  lora                  Lora[]
+  session               Session[]
+  account               Account[]
+}
+
+model Lora {
+  id                    Int           @id @default(autoincrement())
+  user                  User          @relation(fields: [user_id], references: [id])
+  user_id               Int
+  lora_id               Int           @unique
+  lora_limit            LORA_LIMIT
+  lora_amount           Int           @default(0)
+  lora_creation_time    DateTime      @default(now())
+  images                Image[]
+}
+
+model Image{
+  id            Int     @id @default(autoincrement())
+  lora          Lora    @relation(fields: [lora_id], references: [id])
+  user          User    @relation(fields: [user_id], references: [id])
+  user_id       Int
+  lora_id       Int
+  url           String
+  Dimensions    String
+  seed          Int
+  prompt        String
+  status        GENERATION_STATUS
+  created_at    DateTime  @default(now())
+  request_id    String
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                  Int       @id @default(autoincrement())
+  userId              Int
+  type                String    // oauth, email, etc.
+  provider            String    // google, github, etc.
+  providerAccountId   String    // ID from the provider
+  refresh_token       String?   @db.Text
+  access_token        String?   @db.Text
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?   @db.Text
+  session_state       String?
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+enum LORA_LIMIT {
+  ONE
+  THREE 
+  FIVE
+}
+
+enum GENERATION_STATUS {
+  PENDING
+  PROCESSING
+  SUCESS
+  FAILED
+}
+
+enum SUBSCRIPTION_STATUS {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+}
