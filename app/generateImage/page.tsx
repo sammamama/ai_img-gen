@@ -7,24 +7,26 @@ import { redirect } from 'next/navigation';
 import React from 'react'
 
 const page = async () => {
-  const user = await getServerSession(authConfig);
+  const session = await getServerSession(authConfig);
 
-  if(!user) redirect('/');
+  if(!session?.user?.email) redirect('/');
 
   const models = await prisma.user.findUnique({
     where: {
-      email: user.user?.email || ""
+      email: session.user?.email
     },
     include: {
       lora: true
     }
   })
+  if((models?.lora.length ?? 0) <= 0 || (models === null)) return <div className="">Create a model first</div>
 
-  if(models?.lora.length ?? 0 <= 0) return <div className="">Create a model first</div>
 
   return (
     <div>
-      <GenerationInterface />
+      <GenerationInterface 
+        models={models}
+      />
     </div>
   )
 }

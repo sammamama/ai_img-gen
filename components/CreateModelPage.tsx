@@ -8,15 +8,17 @@ import { Plus, Upload, X } from "lucide-react";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
 const modelSchema = z.object({
   name: z.string().min(3, "Model name is required with 3 characters"),
   images: z
     .array(z.instanceof(File))
-    .min(20, "At least 20 images are required"),
+    // TODO: Change the min image number
+    .min(1, "At least 20 images are required"),
 });
 
-export default function CustomModelPage() {
+export default function CreateModelPage() {
   const [modelName, setModelName] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -56,9 +58,6 @@ export default function CustomModelPage() {
 
     try {
       modelSchema.parse({ name: modelName, images: selectedFiles });
-      // Here you would typically send the files and model name to your backend
-      console.log("Model Name:", modelName);
-      console.log("Selected Files:", selectedFiles);
       toast({
         title: "Custom model created",
         description: `Model "${modelName}" created with ${selectedFiles.length} images.`,
@@ -89,7 +88,7 @@ export default function CustomModelPage() {
         })
       );
   
-      const response = await fetch("/api/fal", {
+      const response = await fetch("/api/fal/createModel", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +103,9 @@ export default function CustomModelPage() {
         await response.json();
   
       if (data.success) {
-        console.log("Model created successfully with ID:", data.modelId);
+        console.log("response " + JSON.stringify(response));
+        console.log("Model created successfully with ID: ", data.modelId);
+        redirect('/customModels');
       } else {
         console.error("Model creation failed:", data.error);
       }

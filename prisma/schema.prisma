@@ -20,27 +20,33 @@ model User {
   created_at            DateTime  @default(now())
   credits               Int
   subscription_type     SUBSCRIPTION_STATUS @default(UNPAID)
+  // TODO: Remove the default lora_limit
+  lora_limit            LORA_LIMIT    @default(ONE)
+  lora_amount           Int           @default(0)
   images                Image[]
   lora                  Lora[]
   session               Session[]
   account               Account[]
 }
-
-model Lora {
-  id                    Int           @id @default(autoincrement())
-  user                  User          @relation(fields: [user_id], references: [id])
-  user_id               Int
-  lora_id               Int           @unique
-  lora_limit            LORA_LIMIT
-  lora_amount           Int           @default(0)
-  lora_creation_time    DateTime      @default(now())
-  images                Image[]
+    
+model Lora {      
+  id                          Int           @id @default(autoincrement())
+  request_id                  String        @unique
+  lora_name                   String        
+  user                        User          @relation(fields: [user_id], references: [id])
+  user_id                     Int
+  lora_creation_time          DateTime      @default(now())
+  lora_path                   String        @unique
+  lora_file_content_type      String
+  config_file_url             String
+  config_file_content_type    String
+  images                      Image[]
 }
 
 model Image{
-  id            Int     @id @default(autoincrement())
-  lora          Lora    @relation(fields: [lora_id], references: [id])
-  user          User    @relation(fields: [user_id], references: [id])
+  id            Int         @id @default(autoincrement())
+  lora          Lora?       @relation(fields: [lora_id], references: [id])
+  user          User        @relation(fields: [user_id], references: [id])
   user_id       Int
   lora_id       Int
   url           String

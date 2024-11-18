@@ -1,10 +1,10 @@
-import CustomModelPage from '@/components/CustomModelPage'
+import CreateModelPage from '@/components/CreateModelPage'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-      <CustomModelPage />
+      <CreateModelPage />
     </div>
   )
 }
